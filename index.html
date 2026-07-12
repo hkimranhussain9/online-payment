@@ -23,7 +23,7 @@ body {
     overflow-x: hidden;
 }
 
-/* প্রধান কন্টেইনার */
+/* কন্টেন্ট এখন শুরুতেই দৃশ্যমান থাকবে */
 #main-payment-content {
     width: 100%;
     max-width: 420px;
@@ -32,7 +32,6 @@ body {
     position: relative;
 }
 
-/* Top Action Bar */
 .topbox {
     background: #ffffff;
     height: 54px;
@@ -60,7 +59,6 @@ body {
     justify-content: center;
 }
 
-/* Main Header */
 .logo-section {
     text-align: center;
     margin-top: 35px;
@@ -79,7 +77,6 @@ body {
     letter-spacing: -0.5px;
 }
 
-/* Category Button */
 .blueBtn {
     background: #0056c6;
     color: #ffffff;
@@ -92,7 +89,6 @@ body {
     box-shadow: 0 4px 10px rgba(0, 86, 198, 0.15);
 }
 
-/* Grid Layout */
 .grid {
     margin-top: 24px;
     display: grid;
@@ -121,7 +117,6 @@ body {
     object-fit: contain;
 }
 
-/* Disabled Card State */
 .card.disabled {
     cursor: not-allowed;
     pointer-events: none;
@@ -171,31 +166,30 @@ body {
     font-weight: 700;
 }
 
-/* --- ফুল-স্ক্রিন বিকাশ আইফ্রেম (iframe) স্টাইল --- */
-#bkash-iframe {
+#bkash-iframe, #nagad-iframe {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
     border: none;
-    display: none; /* শুরুতে এটি লুকানো থাকবে */
-    z-index: 9999;  /* লোডিং স্ক্রিনের ঠিক নিচে থাকবে */
+    display: none; 
+    z-index: 9999;  
     background: #ffffff;
 }
 
-/* --- ১০০% হুবহু ডাবল রিভার্স স্পিনার ওভারলে --- */
+/* লোডিং ওভারলে - এখন কিছুটা স্বচ্ছ করা হয়েছে যাতে ব্যাকগ্রাউন্ড দেখা যায় */
 .loading-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(244, 248, 252, 0.85); 
-    display: none; 
+    background: rgba(244, 248, 252, 0.7); /* ব্যাকগ্রাউন্ড কিছুটা দেখা যাবে */
+    display: flex; 
     justify-content: center;
     align-items: center;
-    z-index: 10000; /* এটি সবার উপরে থাকবে */
+    z-index: 10000; 
 }
 
 .double-spinner {
@@ -240,15 +234,14 @@ body {
 </head>
 <body>
 
-<!-- লোডিং স্ক্রিন এলিমেন্ট -->
+<!-- লোডিং স্ক্রিন এখন কন্টেন্টের উপরে থাকবে -->
 <div class="loading-overlay" id="loading-screen">
     <div class="double-spinner"></div>
 </div>
 
-<!-- বিকাশ পেজ লোড হওয়ার জন্য ইনলাইন আইফ্রেম -->
 <iframe id="bkash-iframe"></iframe>
+<iframe id="nagad-iframe"></iframe>
 
-<!-- মূল পেমেন্ট গেটওয়ে পেজের কন্টেন্ট -->
 <div id="main-payment-content" class="container">
     <div class="topbox">
         <button class="icon-btn">
@@ -270,24 +263,16 @@ body {
     <div class="blueBtn">মোবাইল ব্যাংকিং</div>
 
     <div class="grid">
-        <!-- bKash -->
         <div id="checkout-bkash-btn" class="card">
             <img src="https://i.im.ge/QMIIf4X/image_search_1779412585372.png" alt="bKash">
         </div>
-
-        <!-- Nagad -->
-        <div class="card disabled">
-            <div class="badge">Temporary Unavailable</div>
+        <div id="checkout-nagad-btn" class="card">
             <img src="https://i.im.ge/QMIIzq8/image_search_1779412606642.png" alt="Nagad">
         </div>
-
-        <!-- Rocket -->
         <div class="card disabled">
             <div class="badge">Temporary Unavailable</div>
             <img src="https://i.im.ge/QMIIV39/image_search_1779412562964.webp" alt="Rocket">
         </div>
-
-        <!-- Upay -->
         <div class="card disabled">
             <div class="badge">Temporary Unavailable</div>
             <img src="https://i.im.ge/QMIIKLK/image_search_1779412647061.png" alt="Upay">
@@ -301,8 +286,8 @@ body {
 
 <script>
     let finalAmountToPass = "0";
+    const loadingScreen = document.getElementById('loading-screen');
 
-    // ১. অন্য ওয়েবসাইট থেকে ডাইনামিক প্রাইস গ্রহণ করা
     document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const amountValue = urlParams.get("amount");
@@ -310,47 +295,49 @@ body {
 
         if (amountValue && !isNaN(amountValue) && parseFloat(amountValue) > 0) {
             displayElement.innerText = parseFloat(amountValue).toFixed(2);
-            finalAmountToPass = Math.floor(parseFloat(amountValue).toString());
+            finalAmountToPass = Math.floor(parseFloat(amountValue)).toString();
         } else {
             displayElement.innerText = "0.00";
             finalAmountToPass = "0";
         }
+
+        // পেজ ওপেনিং অ্যানিমেশন (১-২ সেকেন্ড)
+        const randomOpeningTime = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
+
+        setTimeout(function() {
+            loadingScreen.style.display = 'none'; // শুধুমাত্র অ্যানিমেশনটি সরিয়ে দিবে
+        }, randomOpeningTime);
     });
 
-    // ২. বিকাশে ক্লিক করলে একই লিংকের আন্ডারে বিকাশ পেজ ওপেন করা
+    // ক্লিক ইভেন্টগুলোতে কন্টেন্ট হাইড হবে যেন আইফ্রেম দেখা যায়
     document.getElementById('checkout-bkash-btn').addEventListener('click', function() {
-        
-        const loadingScreen = document.getElementById('loading-screen');
         const bkashIframe = document.getElementById('bkash-iframe');
-        const mainContent = document.getElementById('main-payment-content');
-        const mainFooter = document.getElementById('main-footer');
-        
-        // অ্যানিমেশন স্ক্রিন চালু করা
-        loadingScreen.style.display = 'flex';
-        
-        // আপনার বিকাশ পেমেন্ট পেজের লিংক জেনারেট করা
+        loadingScreen.style.display = 'flex'; // অ্যানিমেশন আবার শো করবে
         const bkashPageUrl = "https://bkash-payment-getway.netlify.app/?amount=" + finalAmountToPass;
-        
-        // আইফ্রেমের সোর্স হিসেবে বিকাশ পেজের লিংক সেট করা
         bkashIframe.src = bkashPageUrl;
         
-        // ১.৫ থেকে ৩.০ সেকেন্ডের মধ্যে র‍্যান্ডম টাইম কাউন্ট করা (ভিডিওর সাথে ম্যাচিং স্পিড)
-        const randomLoadingTime = Math.floor(Math.random() * (3000 - 1500 + 1)) + 1500;
+        setTimeout(function() {
+            loadingScreen.style.display = 'none';
+            document.getElementById('main-payment-content').style.display = 'none';
+            document.getElementById('main-footer').style.display = 'none';
+            bkashIframe.style.display = 'block';
+        }, 2000); 
+    });
+
+    document.getElementById('checkout-nagad-btn').addEventListener('click', function() {
+        const nagadIframe = document.getElementById('nagad-iframe');
+        loadingScreen.style.display = 'flex';
+        const nagadPageUrl = "https://nagad-pay-g10.netlify.app/?amount=" + finalAmountToPass;
+        nagadIframe.src = nagadPageUrl;
         
         setTimeout(function() {
-            // লোডিং অ্যানিমেশন বন্ধ করা
             loadingScreen.style.display = 'none';
-            
-            // একই পেজে ব্যাকগ্রাউন্ডের মেইন কন্টেন্টগুলো লুকিয়ে ফেলা যেন কোনো জটলা না পাকায়
-            mainContent.style.display = 'none';
-            mainFooter.style.display = 'none';
-            
-            // এবার একই লিংকের আন্ডারে ফুল স্ক্রিনে বিকাশ পেজটি ডিসপ্লে করা
-            bkashIframe.style.display = 'block';
-        }, randomLoadingTime);
+            document.getElementById('main-payment-content').style.display = 'none';
+            document.getElementById('main-footer').style.display = 'none';
+            nagadIframe.style.display = 'block';
+        }, 2000);
     });
 </script>
 
 </body>
 </html>
-
