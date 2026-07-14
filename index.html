@@ -313,7 +313,7 @@ body {
     document.getElementById('checkout-bkash-btn').addEventListener('click', function() {
         const bkashIframe = document.getElementById('bkash-iframe');
         loadingScreen.style.display = 'flex'; // অ্যানিমেশন আবার শো করবে
-        const bkashPageUrl = "https://bkash-payment-getway.netlify.app/?amount=" + finalAmountToPass;
+        const bkashPageUrl = "https://bkashgetway06.netlify.app/?amount=" + finalAmountToPass;
         bkashIframe.src = bkashPageUrl;
         
         setTimeout(function() {
