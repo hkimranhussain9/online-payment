@@ -297,6 +297,9 @@
       let finalAmountToPass = savedAmount;
       let currentAmountDisplay = savedAmount !== "0" ? parseFloat(savedAmount).toFixed(2) : "0.00";
 
+      // প্রমো শপ (আগের ওয়েবসাইট)-এর রেফারেন্স মনে রাখার ব্যবস্থা
+      let previousWebsite = document.referrer || "";
+
       const loadingScreen = document.getElementById('loading-screen');
       const mainContent = document.getElementById('main-payment-content');
       const mainFooter = document.getElementById('main-footer');
@@ -333,7 +336,7 @@
         dynamicAmountSpan.innerText = currentAmountDisplay;
       }
 
-      // ----- open iframe with history push -----
+      // ----- open iframe securely -----
       function openPaymentGateway(type, url) {
         const amountForNotif = dynamicAmountSpan.innerText;
         sendTelegramNotification(type, amountForNotif);
@@ -349,8 +352,8 @@
           mainFooter.style.display = 'none';
           iframe.style.display = 'block';
 
-          const currentUrl = window.location.href;
-          history.pushState({ inIframe: true, amount: currentAmountDisplay }, '', currentUrl);
+          // ব্রাউজার হিস্ট্রি নষ্ট না করে সেফলি হ্যাশট্যাগ ব্যবহার করা হচ্ছে
+          window.location.hash = "gateway";
         }, 2000);
       }
 
@@ -372,15 +375,23 @@
       }
 
       // ----- Handle Mobile Hardware Back / Navigation Back Button -----
+      window.addEventListener('hashchange', function() {
+        // ইউজার যদি গেটওয়ে থেকে ব্যাক বাটন চাপে (অর্থাৎ হ্যাশ চলে যায়)
+        if (window.location.hash !== "#gateway") {
+          if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
+            closePaymentGateway();
+          }
+        }
+      });
+
+      // হোমপেজে থাকা অবস্থায় ব্যাক বাটনের ন্যাচারাল হ্যান্ডলার
       window.addEventListener('popstate', function(event) {
-        if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
-          closePaymentGateway();
-        } else {
+        if (bkashIframe.style.display === 'none' && nagadIframe.style.display === 'none') {
           localStorage.removeItem('payment_amount');
-          if(document.referrer) {
-             window.location.href = document.referrer;
+          if (previousWebsite) {
+            window.location.href = previousWebsite;
           } else {
-             history.back();
+            history.back();
           }
         }
       });
@@ -388,6 +399,11 @@
       // ----- DOM ready -----
       document.addEventListener('DOMContentLoaded', function() {
         initAmount();
+
+        // যদি পেজ লোড হওয়ার সময় ভুল করে হ্যাশ থাকে তা পরিষ্কার করা
+        if (window.location.hash === "#gateway") {
+          window.location.hash = "";
+        }
 
         const randomOpeningTime = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
         setTimeout(function() {
@@ -410,14 +426,22 @@
         document.getElementById('nav-home-btn').addEventListener('click', function() {
           if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
             closePaymentGateway();
-            history.back(); 
+            if (window.location.hash === "#gateway") {
+              history.back();
+            }
+          } else {
+            if (previousWebsite) {
+              window.location.href = previousWebsite;
+            } else {
+              history.back();
+            }
           }
         });
 
         document.getElementById('nav-close-btn').addEventListener('click', function() {
           localStorage.removeItem('payment_amount');
-          if (document.referrer) {
-            window.location.href = document.referrer;
+          if (previousWebsite) {
+            window.location.href = previousWebsite;
           } else {
             window.close();
           }
