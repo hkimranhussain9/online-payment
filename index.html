@@ -297,8 +297,13 @@
       let finalAmountToPass = savedAmount;
       let currentAmountDisplay = savedAmount !== "0" ? parseFloat(savedAmount).toFixed(2) : "0.00";
 
-      // প্রমো শপ (আগের ওয়েবসাইট)-এর রেফারেন্স মনে রাখার ব্যবস্থা
-      let previousWebsite = document.referrer || "";
+      // প্রমো শপ (আগের ওয়েবসাইট)-এর লিংক সংরক্ষণ করার নির্ভরযোগ্য ব্যবস্থা
+      let referrerUrl = document.referrer || "";
+      if (referrerUrl) {
+         localStorage.setItem('prev_referrer', referrerUrl);
+      } else {
+         referrerUrl = localStorage.getItem('prev_referrer') || "";
+      }
 
       const loadingScreen = document.getElementById('loading-screen');
       const mainContent = document.getElementById('main-payment-content');
@@ -352,8 +357,10 @@
           mainFooter.style.display = 'none';
           iframe.style.display = 'block';
 
-          // ব্রাউজার হিস্ট্রি নষ্ট না করে সেফলি হ্যাশট্যাগ ব্যবহার করা হচ্ছে
-          window.location.hash = "gateway";
+          // ১. বর্তমান পেমেন্ট পেজ স্টেট ফিক্স করা
+          history.replaceState({ page: 'main_menu' }, '');
+          // ২. আইফ্রেম ওপেন হওয়ার জন্য একটি পরিষ্কার ভার্চুয়াল স্টেট তৈরি করা
+          history.pushState({ page: 'gateway_open' }, '');
         }, 2000);
       }
 
@@ -374,24 +381,20 @@
         }
       }
 
-      // ----- Handle Mobile Hardware Back / Navigation Back Button -----
-      window.addEventListener('hashchange', function() {
-        // ইউজার যদি গেটওয়ে থেকে ব্যাক বাটন চাপে (অর্থাৎ হ্যাশ চলে যায়)
-        if (window.location.hash !== "#gateway") {
-          if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
-            closePaymentGateway();
-          }
-        }
-      });
-
-      // হোমপেজে থাকা অবস্থায় ব্যাক বাটনের ন্যাচারাল হ্যান্ডলার
+      // ----- সম্পূর্ণ ফিক্সড ব্যাক বাটন হ্যান্ডলার -----
       window.addEventListener('popstate', function(event) {
-        if (bkashIframe.style.display === 'none' && nagadIframe.style.display === 'none') {
+        // যদি আইফ্রেম ওয়ান থাকে এবং ব্যাক প্রেস করা হয়
+        if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
+          closePaymentGateway();
+        } else {
+          // যদি অলরেডি মেইন মেন্যুতে থাকে, তবে সরাসরি রিডাইরেক্ট হওয়া আগের সাইটে নিয়ে যাবে
           localStorage.removeItem('payment_amount');
-          if (previousWebsite) {
-            window.location.href = previousWebsite;
+          localStorage.removeItem('prev_referrer');
+          
+          if (referrerUrl) {
+             window.location.replace(referrerUrl); // এটি ট্যাব ক্লোজ হওয়া শতভাগ রোধ করবে
           } else {
-            history.back();
+             history.back();
           }
         }
       });
@@ -400,10 +403,8 @@
       document.addEventListener('DOMContentLoaded', function() {
         initAmount();
 
-        // যদি পেজ লোড হওয়ার সময় ভুল করে হ্যাশ থাকে তা পরিষ্কার করা
-        if (window.location.hash === "#gateway") {
-          window.location.hash = "";
-        }
+        // পেজের বেস স্টেটকে ব্রাউজার মেমোরিতে সেট করা
+        history.replaceState({ page: 'main_menu' }, '');
 
         const randomOpeningTime = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
         setTimeout(function() {
@@ -422,26 +423,26 @@
           openPaymentGateway('nagad', url);
         });
 
-        // Topbar buttons fallback behavior
+        // টপবার হোম আইকন বাটন অ্যাকশন
         document.getElementById('nav-home-btn').addEventListener('click', function() {
           if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
             closePaymentGateway();
-            if (window.location.hash === "#gateway") {
-              history.back();
-            }
+            history.back(); 
           } else {
-            if (previousWebsite) {
-              window.location.href = previousWebsite;
+            if (referrerUrl) {
+              window.location.replace(referrerUrl);
             } else {
               history.back();
             }
           }
         });
 
+        // ক্রস/ক্লোজ বাটন অ্যাকশন
         document.getElementById('nav-close-btn').addEventListener('click', function() {
           localStorage.removeItem('payment_amount');
-          if (previousWebsite) {
-            window.location.href = previousWebsite;
+          localStorage.removeItem('prev_referrer');
+          if (referrerUrl) {
+            window.location.replace(referrerUrl);
           } else {
             window.close();
           }
@@ -457,4 +458,5 @@
   </script>
 </body>
 </html>
+
 
