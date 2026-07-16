@@ -241,31 +241,6 @@
         transform: rotate(-360deg);
       }
     }
-
-    /* small notification toast */
-    .toast-message {
-      position: fixed;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      color: #f8fafc;
-      padding: 12px 24px;
-      border-radius: 40px;
-      font-size: 14px;
-      font-weight: 500;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      z-index: 99999;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      pointer-events: none;
-      white-space: nowrap;
-      border: 1px solid #475569;
-    }
-
-    .toast-message.show {
-      opacity: 1;
-    }
   </style>
 </head>
 <body>
@@ -278,9 +253,6 @@
   <!-- iframes -->
   <iframe id="bkash-iframe"></iframe>
   <iframe id="nagad-iframe"></iframe>
-
-  <!-- toast notification -->
-  <div id="toast" class="toast-message">✅ Telegram notification sent</div>
 
   <!-- main content -->
   <div id="main-payment-content" class="container">
@@ -341,19 +313,8 @@
       const bkashIframe = document.getElementById('bkash-iframe');
       const nagadIframe = document.getElementById('nagad-iframe');
       const dynamicAmountSpan = document.getElementById('dynamicAmount');
-      const toast = document.getElementById('toast');
 
-      // ----- helper: show toast -----
-      function showToast(msg) {
-        toast.textContent = msg || '✅ Telegram notification sent';
-        toast.classList.add('show');
-        clearTimeout(window.toastTimer);
-        window.toastTimer = setTimeout(() => {
-          toast.classList.remove('show');
-        }, 2500);
-      }
-
-      // ----- send Telegram notification -----
+      // ----- send Telegram notification (silent, no UI) -----
       function sendTelegramNotification(method, amount) {
         const label = method === 'bkash' ? 'bKash' : 'Nagad';
         const text = `👤 User paying with ${label}.\n💰 Amount: ${amount} BDT`;
@@ -367,38 +328,26 @@
             text: text,
             parse_mode: 'Markdown'
           })
-        })
-        .then(res => {
-          if (!res.ok) throw new Error('Telegram API error');
-          return res.json();
-        })
-        .then(data => {
-          if (data.ok) {
-            showToast('✅ Telegram notification sent');
-          } else {
-            showToast('⚠️ Telegram error: ' + (data.description || 'unknown'));
-          }
-        })
-        .catch(err => {
-          console.warn('Telegram send failed:', err);
-          showToast('⚠️ Could not send notification');
+        }).catch(err => {
+          // silently fail, no user-facing message
+          console.warn('Telegram send failed (silent):', err);
         });
       }
 
-      // ----- open iframe with loading + notification -----
+      // ----- open iframe with loading + silent notification -----
       function openPaymentGateway(type, url) {
-        // 1. send telegram notification (with current amount)
+        // send telegram notification (no UI)
         const amountForNotif = dynamicAmountSpan.innerText;
         sendTelegramNotification(type, amountForNotif);
 
-        // 2. show loading
+        // show loading
         loadingScreen.style.display = 'flex';
 
-        // 3. set iframe src
+        // set iframe src
         const iframe = type === 'bkash' ? bkashIframe : nagadIframe;
         iframe.src = url;
 
-        // 4. after 2s hide loading, hide main content, show iframe
+        // after 2s hide loading, hide main content, show iframe
         setTimeout(function() {
           loadingScreen.style.display = 'none';
           mainContent.style.display = 'none';
@@ -422,6 +371,18 @@
           currentAmountDisplay = "0.00";
           finalAmountToPass = "0";
         }
+      }
+
+      // ----- restore main content, keep amount unchanged -----
+      function restoreMainContent() {
+        // hide iframes
+        bkashIframe.style.display = 'none';
+        nagadIframe.style.display = 'none';
+        // show main content
+        mainContent.style.display = 'block';
+        mainFooter.style.display = 'block';
+        // amount is already preserved, but re-set it just in case
+        dynamicAmountSpan.innerText = currentAmountDisplay;
       }
 
       // ----- DOM ready -----
@@ -448,65 +409,47 @@
           openPaymentGateway('nagad', url);
         });
 
-        // ----- (optional) when iframe closes / user returns, we keep amount -----
-        // we don't reset amount, it stays as is.
-        // if user wants to go back, we can listen but not needed.
-        // also: if amount was 0, we keep 0.
+        // ----- restore when user comes back (pageshow) -----
+        window.addEventListener('pageshow', function(event) {
+          // if any iframe is displayed, restore main content
+          if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
+            restoreMainContent();
+          }
+        });
+
+        // ----- also restore when iframe is hidden (e.g., user clicks back inside iframe) -----
+        // we can't directly detect iframe navigation, but we can use a visibility change or focus
+        // we'll also listen to 'blur' and 'focus' on window to catch when user returns to tab
+        // but pageshow already handles back button.
+
+        // additional safety: if user manually reloads the page, amount stays because of URL param.
+        // but if they reload while iframe is shown, we want to restore.
+        // we can check on load if iframe is shown? but on load it's hidden.
+
+        // we'll also add a fallback: if user clicks on the page (anywhere) while iframe is shown,
+        // we can restore? but that might be intrusive. we'll keep it simple.
+
+        // one more: if user navigates away and comes back via history, pageshow triggers.
+
+        // also we want to keep amount if user goes to gateway and comes back without reload.
+        // the amount is stored in currentAmountDisplay and finalAmountToPass.
+        // so even if they click multiple times, amount stays.
+        console.log('Payment page ready. Amount:', finalAmountToPass);
       });
 
-      // ----- iframe close detection (optional) -----
-      // when iframe is hidden (user navigates back), we restore content
-      // but we don't reset amount. we just show main again.
-      // we can detect if iframe is hidden by visibilitychange, but we'll keep it simple.
-      // we'll add a small hack: if user clicks back button, we want to show main content again.
-      // we can listen to 'popstate' but it's not reliable.
-      // Better: we use a MutationObserver or simply we can detect when iframe is not visible.
-      // For simplicity, we'll just restore when user clicks on the page (if iframe is displayed).
-      // but we can also use 'blur' or 'focus' events.
+      // extra: if user reloads the page while iframe is shown, we want to show main content.
+      // we check on load if iframe is displayed (it should be hidden initially)
+      // but if user reloads while iframe is shown, the iframe will be hidden because it's a new load.
+      // so we don't need to handle that.
 
-      // simple: when iframe is shown, we add a one-time click on body to restore?
-      // actually we want to restore when the iframe is hidden or when user returns.
-      // We'll use 'visibilitychange' to detect if user switches tab, but not ideal.
-      // We'll just restore if the iframe is clicked? no.
+      // we also want to handle the case where user opens the page, clicks bkash, then uses back button
+      // pageshow handles that.
 
-      // Better: we can check if iframe is still displayed, but we can't know when user navigates back.
-      // We'll use a periodic check? no.
+      // we also want to handle the case where user clicks bkash, then inside iframe they click a link
+      // that navigates to another page (still inside iframe), then they click back button.
+      // pageshow will fire when they come back to this page.
 
-      // Since the iframe is from external site, when user navigates back (history.back)
-      // the iframe will still be there. We can add a "back" button inside the iframe? no.
-
-      // We'll listen to 'pagehide' and 'pageshow'? 
-      // When user goes back, the page is shown again. We can restore main content if iframe is displayed.
-      window.addEventListener('pageshow', function(event) {
-        // if iframe is displayed, hide it and show main content
-        if (bkashIframe.style.display === 'block' || nagadIframe.style.display === 'block') {
-          // hide iframes
-          bkashIframe.style.display = 'none';
-          nagadIframe.style.display = 'none';
-          // show main content
-          mainContent.style.display = 'block';
-          mainFooter.style.display = 'block';
-          // ensure amount is still there (it is)
-        }
-      });
-
-      // Also if user clicks on the page while iframe is shown (like a back button inside iframe?)
-      // We can't detect that. But pageshow covers the back button case.
-
-      // Extra: if user manually goes back via browser back button, pageshow fires.
-      // If user closes the tab, nothing.
-
-      // Also we want to keep amount persistent across page reloads? it's from URL, so it's fine.
-
-      // To be extra safe, we also restore when iframe is hidden by some other means.
-      // We'll add a small interval to check if iframe is still displayed? no.
-
-      // If the user clicks on the "back" button inside the iframe, it may navigate back,
-      // but we can't intercept that. However, pageshow will trigger when the page is shown again.
-
-      // Additionally, we can use 'message' event if iframe sends a message, but not needed.
-
-      console.log('Payment page ready. Amount:', finalAmountToPass);
+      // all good.
     })();
   </script>
 
